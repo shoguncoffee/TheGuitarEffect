@@ -1,1 +1,7 @@
 Debug/
+Release/
+*.o
+*.html
+*.css
+*.txt
+*_htmresc/

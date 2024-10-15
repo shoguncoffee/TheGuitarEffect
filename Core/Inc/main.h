@@ -31,6 +31,13 @@ extern "C" {
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
+//#include "stdio.h"
+#include "stm32746g_discovery.h"
+#include "stm32746g_discovery_ts.h"
+#include "stm32746g_discovery_lcd.h"
+#include "stm32746g_discovery_sdram.h"
+#include "stm32746g_discovery_audio.h"
+#include "stm32746g_discovery_qspi.h"
 
 /* USER CODE END Includes */
 
@@ -279,7 +286,7 @@ void Error_Handler(void);
 #define FMC_D10_GPIO_Port GPIOE
 
 /* USER CODE BEGIN Private defines */
-
+#define LCD_FRAME_BUFFER			SDRAM_DEVICE_ADDR
 /* USER CODE END Private defines */
 
 #ifdef __cplusplus

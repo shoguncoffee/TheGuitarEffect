@@ -18,7 +18,6 @@
 /* USER CODE END Header */
 /* Includes ------------------------------------------------------------------*/
 #include "main.h"
-#include "cmsis_os.h"
 #include "adc.h"
 #include "crc.h"
 #include "dma.h"
@@ -63,7 +62,6 @@
 /* Private function prototypes -----------------------------------------------*/
 void SystemClock_Config(void);
 void PeriphCommonClock_Config(void);
-void MX_FREERTOS_Init(void);
 /* USER CODE BEGIN PFP */
 
 /* USER CODE END PFP */
@@ -121,21 +119,34 @@ int main(void)
   MX_I2S1_Init();
   /* USER CODE BEGIN 2 */
 
+
+	BSP_LED_Init(LED1);
+	BSP_PB_Init(BUTTON_KEY, BUTTON_MODE_GPIO);
+	BSP_LCD_Init();
+	BSP_LCD_LayerDefaultInit(LTDC_ACTIVE_LAYER, LCD_FRAME_BUFFER);
+
+	BSP_PB_GetState(BUTTON_KEY);
+
+	BSP_LCD_SelectLayer(LTDC_ACTIVE_LAYER);
+	BSP_LCD_SetBackColor(LCD_COLOR_RED);
+	BSP_LCD_Clear(LCD_COLOR_RED);
+
+	BSP_LCD_SetFont(&Font16);
+	BSP_LCD_SetTextColor(LCD_COLOR_BLUE);
+	BSP_LCD_FillRect(0, BSP_LCD_GetYSize() / 2 + 15, BSP_LCD_GetXSize(), 60);
+	BSP_LCD_SetTextColor(LCD_COLOR_WHITE);
+	BSP_LCD_SetBackColor(LCD_COLOR_BLUE);
+	BSP_LCD_DisplayStringAt(0, BSP_LCD_GetYSize() / 2 + 30, (uint8_t *)"Press User Button to start :", CENTER_MODE);
+	BSP_LCD_DisplayStringAt(0, BSP_LCD_GetYSize() / 2 + 45, (uint8_t *)"AUDIO RECORD example", CENTER_MODE);
+
   /* USER CODE END 2 */
-
-  /* Call init function for freertos objects (in cmsis_os2.c) */
-  MX_FREERTOS_Init();
-
-  /* Start scheduler */
-  osKernelStart();
-
-  /* We should never get here as control is now taken by the scheduler */
 
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
-  while (1)
-  {
+  while (1) {
     /* USER CODE END WHILE */
+
+
 
     /* USER CODE BEGIN 3 */
   }

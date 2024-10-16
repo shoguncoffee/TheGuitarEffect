@@ -40,6 +40,12 @@ extern SAI_HandleTypeDef haudio_in_sai;
 /* SDRAM handler declared in "stm32746g_discovery_sdram.c" file */
 extern SDRAM_HandleTypeDef sdramHandle;
 
+
+extern ADC_HandleTypeDef    AdcHandle;
+extern int EffectIndex;
+extern int ParameterIndex;
+extern Effect  effect[];
+
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -283,6 +289,8 @@ void DMA2D_IRQHandler(void)
   HAL_DMA2D_IRQHandler(&hdma2d);
   /* USER CODE BEGIN DMA2D_IRQn 1 */
 
+  // BSP_LCD_DMA2D_IRQHandler();
+
   /* USER CODE END DMA2D_IRQn 1 */
 }
 
@@ -302,5 +310,105 @@ void AUDIO_OUT_SAIx_DMAx_IRQHandler(void)
 {
   HAL_DMA_IRQHandler(haudio_out_sai.hdmatx);
 }
+
+// void EXTI0_IRQHandler(void)
+// {
+//     HAL_GPIO_EXTI_IRQHandler(WAKEUP_BUTTON_PIN);
+
+//     // Check if the interrupt is triggered by EXTI Line0
+//     static uint32_t debounce_time = 0;
+
+//     if (__HAL_GPIO_EXTI_GET_IT(GPIO_PIN_0) != RESET)
+//     {
+//         // Prevent debounce effect for user key
+//         if ((HAL_GetTick() - debounce_time) > 150)
+//         {
+//             // Clear the EXTI line pending bit
+//             __HAL_GPIO_EXTI_CLEAR_IT(GPIO_PIN_0);
+
+//             // stop updating the guage
+// //            can_update_parameter = 0;
+
+//             // Add your code here, e.g., toggle an LED
+//             EffectIndex++;
+// //            if (EffectIndex >= 6)
+//             if (EffectIndex >= 6)
+// 			{
+// 				EffectIndex = 0;
+// 			}
+
+//             // change the whole display to account for
+//             change_effect_display();
+//             // set paramIndex to 0
+//             ParameterIndex = 0;
+//             change_guage_display(1);
+
+// //            can_update_parameter = 1;
+
+//             // Update the debounce time
+//             debounce_time = HAL_GetTick();
+//         }
+//         else
+//         {
+//             // If the time is not sufficient, clear the interrupt to prevent further triggers
+//             __HAL_GPIO_EXTI_CLEAR_IT(GPIO_PIN_0);
+//         }
+//     }
+// }
+
+// void EXTI2_IRQHandler(void)
+// {
+//    HAL_GPIO_EXTI_IRQHandler(GPIO_PIN_2);
+// }
+
+// void ADCx_DMA_IRQHandler(void)
+// {
+//   HAL_DMA_IRQHandler(AdcHandle.DMA_Handle);
+// }
+
+// void EXTI15_10_IRQHandler(void)
+// {
+//   /* Interrupt handler shared between SD_DETECT pin, USER_KEY button and touch screen interrupt */
+//   if (__HAL_GPIO_EXTI_GET_IT(SD_DETECT_PIN) != RESET)
+//   {
+//     HAL_GPIO_EXTI_IRQHandler(SD_DETECT_PIN | TS_INT_PIN | AUDIO_IN_INT_GPIO_PIN);   /* SD detect event or touch screen interrupt */
+//   }
+//   else if (__HAL_GPIO_EXTI_GET_IT(GPIO_PIN_15) != RESET)
+//   {
+
+// 	  // Check if the interrupt is triggered by EXTI Line0
+// 	  static uint32_t debounce_time = 0;
+// 	  // Prevent debounce effect for user key
+// 	  if ((HAL_GetTick() - debounce_time) > 125)
+// 	  {
+// 		  // Clear the EXTI line pending bit
+// 		  __HAL_GPIO_EXTI_CLEAR_IT(GPIO_PIN_15);
+
+// 		  // call change change_guage_display to update the former parameter to inactive
+// 		  change_guage_display(0);
+
+// 		  // Add your code here, e.g., toggle an LED
+// 		  ParameterIndex++;
+// 		  if (ParameterIndex >= effects[EffectIndex].ParametersNum)
+// 		  {
+// 			  ParameterIndex = 0;
+// 		  }
+// 		  // call change change_guage_display to update the current parameter to active
+// 		  change_guage_display(1);
+
+// 		  // Update the debounce time
+// 		  debounce_time = HAL_GetTick();
+// 	  }
+// 	  else
+// 	  {
+// 		  // If the time is not sufficient, clear the interrupt to prevent further triggers
+// 		  __HAL_GPIO_EXTI_CLEAR_IT(GPIO_PIN_15);
+// 	  }
+//   }
+//   else
+//   {     /* User button event or Touch screen interrupt */
+//     HAL_GPIO_EXTI_IRQHandler(KEY_BUTTON_PIN);
+//   }
+// }
 
 /* USER CODE END 1 */

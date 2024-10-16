@@ -1,5 +1,3 @@
-/* USER CODE BEGIN Header */
-/* USER CODE END Header */
 /* Includes ------------------------------------------------------------------*/
 #include "main.h"
 #include "adc.h"
@@ -16,7 +14,9 @@
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
-
+#include "stm32f7xx_hal_adc.h"
+#include "string.h"
+#include <math.h>
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -26,7 +26,7 @@
 
 /* Private define ------------------------------------------------------------*/
 /* USER CODE BEGIN PD */
-
+#define LCD_COLOR_RUBYRED		((uint32_t)0xFFB22222)
 /* USER CODE END PD */
 
 /* Private macro -------------------------------------------------------------*/
@@ -37,6 +37,8 @@
 /* Private variables ---------------------------------------------------------*/
 
 /* USER CODE BEGIN PV */
+int EffectIndex = 0;
+int ParameterIndex = 0;
 
 /* USER CODE END PV */
 
@@ -61,6 +63,57 @@ uint8_t CheckForUserInput() {
 	}
 	return 0;
 }
+
+
+extern EffectTypedef effects[] = {
+    {"DISTORTION", 2, 0.0, 0.0, 0.0, 0.0}, 	// ?"           ", 1"Gain", 2"Threshold", ?"    ", ?"        ", ?"   ", ?"           "
+	{"FUZZ", 3, 0.0, 0.0, 0.0, 0.0}, 		// 1"Depth      ", 3"Gain", 2"Threshold", ?"    ", ?"        ", ?"   ", ?"           "
+	{"FLANGER", 4, 0.0, 0.0, 0.0, 0.0}, 		// 1"Delay-Depth", ?"    ", ?"         ", 2"Rate", 3"Feedback", 4"Mix", ?"           "
+	{"ROTARY", 2, 0.0, 0.0, 0.0, 0.0},		// 1"Depth      ", ?"    ", ?"         ", 2"Rate", ?"        ", ?"   ", ?"           "
+	{"REVERB", 2, 0.0, 0.0, 0.0, 0.0},		// ?"           ", ?"    ", ?"         ", ?"    ", ?"        ", 2"Mix", 1"Reverb-Time"
+	{"DELAY", 3, 0.0, 0.0, 0.0, 0.0}, 		// 1"Delay-Depth", ?"    ", ?"         ", ?"    ", 3"Feedback", 2"Mix", ?"         "
+  };
+
+// just set it as global, don't pass in. It doesn't matter
+char effect_names[6][4][15] = {
+	{"Gain", "Threshold"},
+	{"Depth", "Threshold", "Gain"},
+	{"Delay-Depth", "Rate", "Feedback", "Mix"},
+	{"Depth", "Rate"},
+	{"Reverb-Time", "Mix"},
+	{"Delay-Depth", "Mix", "Feedback"}
+};
+
+
+//float depthMax[6] = {0.0, 2.4, 6.0, 1.6, 0.0, 900.0};
+//float gainMax[6] = {2.4, 3.0, 0.0, 0.0, 0.0, 0.0};
+//float thresholdMax[6] = {50000, 30000, 0.0, 0.0, 0.0, 0.0};
+//float rateMax[6] = {0.0, 0.0, 1.0, 8.0, 0.0, 0.0};
+//float feedbackMax[6] = {0.0, 0.0, 0.6, 0.0, 0.0, 0.8};
+//float mixMax[6] = {0.0, 0.0, 1.2, 0.0, 1.4, 1.2};
+//float reverbTimeMax[6] = {0.0, 0.0, 0.0, 0.0, 1000.0, 0.0};
+
+// display code
+// min = 0, max = 4096 -> find percentage -> put in the middle
+// try drawing many circles on top of each other
+// radius should be static
+static void Effect_Circle_Display(uint16_t center_x, uint16_t center_y, uint8_t percentage, char* val_name, uint8_t isActive);
+static void Display_Detail(char* mode_name, char* state_name);
+static int average_8(float x);
+static int average_16(float x);
+static uint8_t convertToPercentage(int x);
+//static void update_percentage_display(uint16_t center_x, uint16_t center_y, uint8_t percentage, uint8_t isActive);
+static void update_guage_value(uint16_t center_x, uint16_t center_y, uint8_t start, uint8_t stop, uint8_t percentage, uint8_t isActive);
+
+// extern function for button interrupts
+extern void change_effect_display();
+extern void change_guage_display(uint8_t isActive);
+extern void update_guage_value_display();
+
+//uint8_t prev_percentage = 0;
+//uint8_t can_update_parameter = 1;
+//uint8_t ext_intrpt_enable = 1;
+uint8_t prevADCValue = 0;
 
 /* USER CODE END 0 */
 
@@ -119,14 +172,19 @@ int main(void)
   MX_I2S1_Init();
   /* USER CODE BEGIN 2 */
 
+  // HAL_ADC_Start_DMA(&hadc3, );
+
 	BSP_LED_Init(LED1);
 	BSP_PB_Init(BUTTON_KEY, BUTTON_MODE_GPIO);
 	BSP_LCD_Init();
 	BSP_LCD_LayerDefaultInit(LTDC_ACTIVE_LAYER, LCD_FRAME_BUFFER);
 
 	BSP_LCD_SelectLayer(LTDC_ACTIVE_LAYER);
-	BSP_LCD_SetBackColor(LCD_COLOR_RED);
-	BSP_LCD_Clear(LCD_COLOR_RED);
+	BSP_LCD_SetBackColor(LCD_COLOR_WHITE);
+  BSP_LCD_Clear(LCD_COLOR_WHITE);
+
+  // change_effect_display();
+  // change_guage_display(1);
 
 	BSP_LCD_SetFont(&Font16);
 	BSP_LCD_SetTextColor(LCD_COLOR_BLUE);
@@ -149,7 +207,57 @@ int main(void)
 		  HAL_Delay(10);
 		  while (BSP_PB_GetState(BUTTON_KEY) != RESET);
 
-		  AudioRec_demo();
+		  // set to inactive all
+      change_guage_ddisplay(0);
+
+      // disable all interrupts
+//      __disable_irq();
+
+      // change to disable just exti15 and exti0
+      HAL_NVIC_DisableIRQ(EXTI0_IRQn);
+
+      // this line doesn't seem to work at all
+      HAL_NVIC_DisableIRQ(EXTI15_10_IRQn);
+
+      AudioRec_demo();
+
+    // so this is quite easy
+    // we want to update the thing according to parameter index
+    // we check which parameter index it is
+    // we check if the value is
+    // current adjustable value
+    uint8_t prev_percentage = 0;
+    int adc_read = average_8(uhADCxConvertedValue);
+    switch(ParameterIndex){
+		case 0:
+			prev_percentage = convertToPercentage(effects[EffectIndex].Parameter1);
+			effects[EffectIndex].Parameter1 = adc_read;
+			break;
+		case 1:
+			prev_percentage = convertToPercentage(effects[EffectIndex].Parameter2);
+			effects[EffectIndex].Parameter2 = adc_read;
+			break;
+		case 2:
+			prev_percentage = convertToPercentage(effects[EffectIndex].Parameter3);
+			effects[EffectIndex].Parameter3 = adc_read;
+			break;
+		case 3:
+			prev_percentage = convertToPercentage(effects[EffectIndex].Parameter4);
+			effects[EffectIndex].Parameter4 = adc_read;
+			break;
+		default:
+			break;
+    }
+
+
+    // update data
+    uint8_t cur_percentage = convertToPercentage(adc_read);
+    if (cur_percentage != prev_percentage) {
+    	update_guage_value_display();
+        prev_percentage = cur_percentage;
+    }
+
+    HAL_Delay(10);
 	  }
   }
   /* USER CODE END 3 */
@@ -249,6 +357,13 @@ void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin)
   {
     /* Audio IN interrupt */
   }
+}
+
+void HAL_ADC_ConvCpltCallback(ADC_HandleTypeDef* AdcHandle)
+{
+  /* Turn LED1 on: Transfer process is correct */
+	BSP_LED_Toggle(LED1);
+	HAL_Delay(1000);
 }
 
 /* USER CODE END 4 */

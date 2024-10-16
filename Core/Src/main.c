@@ -54,34 +54,34 @@ static void MPU_Config(void);
 /* USER CODE BEGIN 0 */
 
 uint8_t CheckForUserInput() {
-	if (BSP_PB_GetState(BUTTON_KEY) != RESET) {
-		HAL_Delay(10);
+    if (BSP_PB_GetState(BUTTON_KEY) != RESET) {
+        HAL_Delay(10);
 
-		while (BSP_PB_GetState(BUTTON_KEY) != RESET);
+        while (BSP_PB_GetState(BUTTON_KEY) != RESET);
 
-		return 1 ;
-	}
-	return 0;
+        return 1 ;
+    }
+    return 0;
 }
 
 
 extern EffectTypedef effects[] = {
     {"DISTORTION", 2, 0.0, 0.0, 0.0, 0.0}, 	// ?"           ", 1"Gain", 2"Threshold", ?"    ", ?"        ", ?"   ", ?"           "
-	{"FUZZ", 3, 0.0, 0.0, 0.0, 0.0}, 		// 1"Depth      ", 3"Gain", 2"Threshold", ?"    ", ?"        ", ?"   ", ?"           "
-	{"FLANGER", 4, 0.0, 0.0, 0.0, 0.0}, 		// 1"Delay-Depth", ?"    ", ?"         ", 2"Rate", 3"Feedback", 4"Mix", ?"           "
-	{"ROTARY", 2, 0.0, 0.0, 0.0, 0.0},		// 1"Depth      ", ?"    ", ?"         ", 2"Rate", ?"        ", ?"   ", ?"           "
-	{"REVERB", 2, 0.0, 0.0, 0.0, 0.0},		// ?"           ", ?"    ", ?"         ", ?"    ", ?"        ", 2"Mix", 1"Reverb-Time"
-	{"DELAY", 3, 0.0, 0.0, 0.0, 0.0}, 		// 1"Delay-Depth", ?"    ", ?"         ", ?"    ", 3"Feedback", 2"Mix", ?"         "
-  };
+    {"FUZZ", 3, 0.0, 0.0, 0.0, 0.0}, 		// 1"Depth      ", 3"Gain", 2"Threshold", ?"    ", ?"        ", ?"   ", ?"           "
+    {"FLANGER", 4, 0.0, 0.0, 0.0, 0.0}, 		// 1"Delay-Depth", ?"    ", ?"         ", 2"Rate", 3"Feedback", 4"Mix", ?"           "
+    {"ROTARY", 2, 0.0, 0.0, 0.0, 0.0},		// 1"Depth      ", ?"    ", ?"         ", 2"Rate", ?"        ", ?"   ", ?"           "
+    {"REVERB", 2, 0.0, 0.0, 0.0, 0.0},		// ?"           ", ?"    ", ?"         ", ?"    ", ?"        ", 2"Mix", 1"Reverb-Time"
+    {"DELAY", 3, 0.0, 0.0, 0.0, 0.0}, 		// 1"Delay-Depth", ?"    ", ?"         ", ?"    ", 3"Feedback", 2"Mix", ?"         "
+};
 
 // just set it as global, don't pass in. It doesn't matter
 char effect_names[6][4][15] = {
-	{"Gain", "Threshold"},
-	{"Depth", "Threshold", "Gain"},
-	{"Delay-Depth", "Rate", "Feedback", "Mix"},
-	{"Depth", "Rate"},
-	{"Reverb-Time", "Mix"},
-	{"Delay-Depth", "Mix", "Feedback"}
+    {"Gain", "Threshold"},
+    {"Depth", "Threshold", "Gain"},
+    {"Delay-Depth", "Rate", "Feedback", "Mix"},
+    {"Depth", "Rate"},
+    {"Reverb-Time", "Mix"},
+    {"Delay-Depth", "Mix", "Feedback"}
 };
 
 
@@ -179,12 +179,16 @@ int main(void)
 	BSP_LCD_Init();
 	BSP_LCD_LayerDefaultInit(LTDC_ACTIVE_LAYER, LCD_FRAME_BUFFER);
 
-	BSP_LCD_SelectLayer(LTDC_ACTIVE_LAYER);
-	BSP_LCD_SetBackColor(LCD_COLOR_WHITE);
-  BSP_LCD_Clear(LCD_COLOR_WHITE);
+  /* USER CODE END 2 */
+  /* Infinite loop */
+  /* USER CODE BEGIN WHILE */
 
   // change_effect_display();
   // change_guage_display(1);
+
+	BSP_LCD_SelectLayer(LTDC_ACTIVE_LAYER);
+	BSP_LCD_SetBackColor(LCD_COLOR_WHITE);
+  BSP_LCD_Clear(LCD_COLOR_WHITE);
 
 	BSP_LCD_SetFont(&Font16);
 	BSP_LCD_SetTextColor(LCD_COLOR_BLUE);
@@ -194,71 +198,66 @@ int main(void)
 	BSP_LCD_DisplayStringAt(0, BSP_LCD_GetYSize() / 2 + 30, (uint8_t *)"Press User Button to start :", CENTER_MODE);
 	BSP_LCD_DisplayStringAt(0, BSP_LCD_GetYSize() / 2 + 45, (uint8_t *)"AUDIO RECORD example", CENTER_MODE);
 
-  /* USER CODE END 2 */
-
-  /* Infinite loop */
-  /* USER CODE BEGIN WHILE */
   while (1) {
     /* USER CODE END WHILE */
-
     /* USER CODE BEGIN 3 */
 
 	  if (BSP_PB_GetState(BUTTON_KEY) != RESET) {
-		  HAL_Delay(10);
-		  while (BSP_PB_GetState(BUTTON_KEY) != RESET);
+        HAL_Delay(10);
+        while (BSP_PB_GetState(BUTTON_KEY) != RESET);
 
-		  // set to inactive all
-      change_guage_ddisplay(0);
+        // set to inactive all
+        change_guage_ddisplay(0);
 
-      // disable all interrupts
-//      __disable_irq();
+        // disable all interrupts
+  //      __disable_irq();
 
-      // change to disable just exti15 and exti0
-      HAL_NVIC_DisableIRQ(EXTI0_IRQn);
+        // change to disable just exti15 and exti0
+        HAL_NVIC_DisableIRQ(EXTI0_IRQn);
 
-      // this line doesn't seem to work at all
-      HAL_NVIC_DisableIRQ(EXTI15_10_IRQn);
+        // this line doesn't seem to work at all
+        HAL_NVIC_DisableIRQ(EXTI15_10_IRQn);
 
-      AudioRec_demo();
+        AudioRec_demo();
 
-    // so this is quite easy
-    // we want to update the thing according to parameter index
-    // we check which parameter index it is
-    // we check if the value is
-    // current adjustable value
-    uint8_t prev_percentage = 0;
-    int adc_read = average_8(uhADCxConvertedValue);
-    switch(ParameterIndex){
-		case 0:
-			prev_percentage = convertToPercentage(effects[EffectIndex].Parameter1);
-			effects[EffectIndex].Parameter1 = adc_read;
-			break;
-		case 1:
-			prev_percentage = convertToPercentage(effects[EffectIndex].Parameter2);
-			effects[EffectIndex].Parameter2 = adc_read;
-			break;
-		case 2:
-			prev_percentage = convertToPercentage(effects[EffectIndex].Parameter3);
-			effects[EffectIndex].Parameter3 = adc_read;
-			break;
-		case 3:
-			prev_percentage = convertToPercentage(effects[EffectIndex].Parameter4);
-			effects[EffectIndex].Parameter4 = adc_read;
-			break;
-		default:
-			break;
-    }
+        // so this is quite easy
+        // we want to update the thing according to parameter index
+        // we check which parameter index it is
+        // we check if the value is
+        // current adjustable value
+        uint8_t prev_percentage = 0;
+        int adc_read = average_8(uhADCxConvertedValue);
 
+        switch (ParameterIndex) {
+            case 0:
+                prev_percentage = convertToPercentage(effects[EffectIndex].Parameter1);
+                effects[EffectIndex].Parameter1 = adc_read;
+                break;
+            case 1:
+                prev_percentage = convertToPercentage(effects[EffectIndex].Parameter2);
+                effects[EffectIndex].Parameter2 = adc_read;
+                break;
+            case 2:
+                prev_percentage = convertToPercentage(effects[EffectIndex].Parameter3);
+                effects[EffectIndex].Parameter3 = adc_read;
+                break;
+            case 3:
+                prev_percentage = convertToPercentage(effects[EffectIndex].Parameter4);
+                effects[EffectIndex].Parameter4 = adc_read;
+                break;
+            default:
+                break;
+        }
 
-    // update data
-    uint8_t cur_percentage = convertToPercentage(adc_read);
-    if (cur_percentage != prev_percentage) {
-    	update_guage_value_display();
-        prev_percentage = cur_percentage;
-    }
+        // update data
+        uint8_t cur_percentage = convertToPercentage(adc_read);
 
-    HAL_Delay(10);
-	  }
+        if (cur_percentage != prev_percentage) {
+            update_guage_value_display();
+            prev_percentage = cur_percentage;
+        }
+        HAL_Delay(10);
+     }
   }
   /* USER CODE END 3 */
 }
@@ -341,26 +340,21 @@ void PeriphCommonClock_Config(void)
 
 /* USER CODE BEGIN 4 */
 
-void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin)
-{
+void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin) {
   static uint32_t debounce_time = 0;
 
-  if (GPIO_Pin == KEY_BUTTON_PIN)
-  {
+  if (GPIO_Pin == KEY_BUTTON_PIN) {
     /* Prevent debounce effect for user key */
-    if ((HAL_GetTick() - debounce_time) > 50)
-    {
+    if ((HAL_GetTick() - debounce_time) > 50) {
       debounce_time = HAL_GetTick();
     }
   }
-  else if (GPIO_Pin == AUDIO_IN_INT_GPIO_PIN)
-  {
+  else if (GPIO_Pin == AUDIO_IN_INT_GPIO_PIN) {
     /* Audio IN interrupt */
   }
 }
 
-void HAL_ADC_ConvCpltCallback(ADC_HandleTypeDef* AdcHandle)
-{
+void HAL_ADC_ConvCpltCallback(ADC_HandleTypeDef* AdcHandle) {
   /* Turn LED1 on: Transfer process is correct */
 	BSP_LED_Toggle(LED1);
 	HAL_Delay(1000);

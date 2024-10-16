@@ -1,12 +1,8 @@
 Debug/
 Release/
-
-*.o
-
-*.html
-
-*.css
-
-**/*.txt
+ignore/
 
 Drivers/*/*/_htmresc/
+*.html
+*.css
+**/*.txt

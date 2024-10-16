@@ -14,6 +14,7 @@ typedef enum {
 #define OUTPUT_ADDR			(AUDIO_REC_START_ADDR + (AUDIO_NB_BLOCKS * AUDIO_BLOCK_SIZE * 2))
 
 extern AUDIO_ErrorTypeDef AUDIO_Start(uint32_t audio_start_address, uint32_t audio_file_size);
+extern Effect effect[];
 
 uint32_t audio_rec_buffer_state;
 static uint16_t internal_buffer[AUDIO_BLOCK_SIZE]; 	// 16 bit * 16,000 element, per 1 block
@@ -85,7 +86,7 @@ void wait_buffer_offset(int state) {
 
 
 void AudioRec_demo() {
-	AudioRec_SetHint();
+//	AudioRec_SetHint();
 
 	// (16 bit * 16,000 element)   /   ( 16 bit * 16 kHz * 2 channel ) = 0.5 s
 	// 0.5 s * 60 block = 30 s     ; if AUDIO_NB_BLOCKS = 60
@@ -96,14 +97,19 @@ void AudioRec_demo() {
 		DEFAULT_AUDIO_IN_CHANNEL_NBR			// Stereo		: 2 channel
 	);
 
-	BSP_LCD_SetBackColor(LCD_COLOR_WHITE);
+	BSP_LCD_SetTextColor(LCD_COLOR_RED);
+	BSP_LCD_FillRect(0, 50, BSP_LCD_GetXSize(), 39);
+
+	BSP_LCD_SetFont(&Font16);
 
 	if (init_status != AUDIO_OK) {
 		BSP_LCD_SetTextColor(LCD_COLOR_RED);
-		BSP_LCD_DisplayStringAt(0, BSP_LCD_GetYSize() - 95, (uint8_t*) "  AUDIO RECORD INIT FAIL", CENTER_MODE);
+		BSP_LCD_SetBackColor(LCD_COLOR_WHITE);
+		BSP_LCD_DisplayStringAt(0, 50, (uint8_t*) " - RECORD INIT FAIL, PLEASE RESTART - ", CENTER_MODE);
 	}
-	BSP_LCD_SetTextColor(LCD_COLOR_BLUE);
-	BSP_LCD_DisplayStringAt(0, BSP_LCD_GetYSize() - 80, (uint8_t*) "       RECORDING...     ", CENTER_MODE);
+	BSP_LCD_SetTextColor(LCD_COLOR_WHITE);
+	BSP_LCD_SetBackColor(LCD_COLOR_RED);
+	BSP_LCD_DisplayStringAt(0, 50, (uint8_t*) " - RECORDING... - ", CENTER_MODE);
 
 	// internal_buffer -> AUDIO_REC_START_ADDR
 	//
@@ -123,15 +129,13 @@ void AudioRec_demo() {
 
 	BSP_AUDIO_IN_Record(internal_buffer, AUDIO_BLOCK_SIZE);
 
-	BSP_LCD_DisplayStringAt(0, BSP_LCD_GetYSize() - 125, (uint8_t*) "count", CENTER_MODE);
 	for (stop_record = 0; !stop_record && block_number < AUDIO_NB_BLOCKS; block_number++) {
 		uint32_t address = AUDIO_REC_START_ADDR + (block_number * AUDIO_BLOCK_SIZE * 2);
 
-		sprintf(str_buf, "%ld", block_number);
+		sprintf(str_buf, "count: %ld", block_number);
 		BSP_LCD_DisplayStringAt(0, BSP_LCD_GetYSize() - 110, (uint8_t*) str_buf, CENTER_MODE);
-		wait_buffer_offset(BUFFER_OFFSET_HALF);
-		BSP_LCD_DisplayStringAt(0, BSP_LCD_GetYSize() - 155, (uint8_t*) "pass", CENTER_MODE);
 
+		wait_buffer_offset(BUFFER_OFFSET_HALF);
 		memcpy(
 			(uint32_t*) address,
 			internal_buffer,
@@ -148,9 +152,17 @@ void AudioRec_demo() {
 
 	BSP_AUDIO_IN_Stop(CODEC_PDWN_SW);
 
+	BSP_LCD_SetTextColor(LCD_COLOR_RED);
+	BSP_LCD_FillRect(0, 50, BSP_LCD_GetXSize(), 39);
+
+	BSP_LCD_SetTextColor(LCD_COLOR_WHITE);
+	BSP_LCD_SetBackColor(LCD_COLOR_RED);
+	BSP_LCD_DisplayStringAt(0, 50, (uint8_t*) " - RECORDING DONE, START PLAYBACK - ", CENTER_MODE);
+
+	BSP_LCD_SetFont(&Font12);
 	sprintf(str_buf, "duration: %.1f s", block_number / 2.0);
-	BSP_LCD_DisplayStringAt(0, BSP_LCD_GetYSize() - 40, (uint8_t*) str_buf, CENTER_MODE);
-	BSP_LCD_DisplayStringAt(0, BSP_LCD_GetYSize() - 65, (uint8_t*) "RECORDING DONE, START PLAYBACK...", CENTER_MODE);
+	BSP_LCD_DisplayStringAt(0, 70, (uint8_t*) str_buf, CENTER_MODE);
+	BSP_LCD_SetBackColor(LCD_COLOR_WHITE);
 
 	BSP_AUDIO_OUT_Init(OUTPUT_DEVICE_HEADPHONE, 70, DEFAULT_AUDIO_IN_FREQ);
 	BSP_AUDIO_OUT_SetAudioFrameSlot(CODEC_AUDIOFRAME_SLOT_02);
@@ -174,7 +186,6 @@ void BSP_AUDIO_IN_TransferComplete_CallBack() {
   audio_rec_buffer_state = BUFFER_OFFSET_FULL;
   return;
 }
-
 
 void BSP_AUDIO_IN_HalfTransfer_CallBack() {
   audio_rec_buffer_state = BUFFER_OFFSET_HALF;

@@ -1,21 +1,4 @@
 /* USER CODE BEGIN Header */
-/**
-  ******************************************************************************
-  * @file           : main.h
-  * @brief          : Header for main.c file.
-  *                   This file contains the common defines of the application.
-  ******************************************************************************
-  * @attention
-  *
-  * Copyright (c) 2024 STMicroelectronics.
-  * All rights reserved.
-  *
-  * This software is licensed under terms that can be found in the LICENSE file
-  * in the root directory of this software component.
-  * If no LICENSE file comes with this software, it is provided AS-IS.
-  *
-  ******************************************************************************
-  */
 /* USER CODE END Header */
 
 /* Define to prevent recursive inclusion -------------------------------------*/
@@ -31,18 +14,31 @@ extern "C" {
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
+
 //#include "stdio.h"
 #include "stm32746g_discovery.h"
 #include "stm32746g_discovery_ts.h"
 #include "stm32746g_discovery_lcd.h"
 #include "stm32746g_discovery_sdram.h"
 #include "stm32746g_discovery_audio.h"
-#include "stm32746g_discovery_qspi.h"
 
 /* USER CODE END Includes */
 
 /* Exported types ------------------------------------------------------------*/
 /* USER CODE BEGIN ET */
+
+typedef enum {
+  AUDIO_ERROR_NONE = 0,
+  AUDIO_ERROR_NOTREADY,
+  AUDIO_ERROR_IO,
+  AUDIO_ERROR_EOF,
+} AUDIO_ErrorTypeDef;
+
+typedef struct {
+//  void   (*DemoFunc)(void);
+  uint8_t DemoName[50];
+  uint32_t DemoIndex;
+} Effect;
 
 /* USER CODE END ET */
 
@@ -61,13 +57,15 @@ void Error_Handler(void);
 
 /* USER CODE BEGIN EFP */
 
+uint8_t AUDIO_Process();
+uint8_t CheckForUserInput();
+void AudioRec_demo();
+
 /* USER CODE END EFP */
 
 /* Private defines -----------------------------------------------------------*/
 #define LCD_B0_Pin GPIO_PIN_4
 #define LCD_B0_GPIO_Port GPIOE
-#define QSPI_D2_Pin GPIO_PIN_2
-#define QSPI_D2_GPIO_Port GPIOE
 #define FMC_NBL1_Pin GPIO_PIN_1
 #define FMC_NBL1_GPIO_Port GPIOE
 #define FMC_NBL0_Pin GPIO_PIN_0
@@ -82,8 +80,6 @@ void Error_Handler(void);
 #define SWDIO_GPIO_Port GPIOA
 #define VCP_RX_Pin GPIO_PIN_7
 #define VCP_RX_GPIO_Port GPIOB
-#define QSPI_NCS_Pin GPIO_PIN_6
-#define QSPI_NCS_GPIO_Port GPIOB
 #define FMC_SDNCAS_Pin GPIO_PIN_15
 #define FMC_SDNCAS_GPIO_Port GPIOG
 #define LCD_B1_Pin GPIO_PIN_13
@@ -228,10 +224,6 @@ void Error_Handler(void);
 #define FMC_A9_GPIO_Port GPIOF
 #define LCD_R5_Pin GPIO_PIN_4
 #define LCD_R5_GPIO_Port GPIOJ
-#define QSPI_D1_Pin GPIO_PIN_12
-#define QSPI_D1_GPIO_Port GPIOD
-#define QSPI_D3_Pin GPIO_PIN_13
-#define QSPI_D3_GPIO_Port GPIOD
 #define EXT_RST_Pin GPIO_PIN_3
 #define EXT_RST_GPIO_Port GPIOG
 #define RMII_RXER_Pin GPIO_PIN_2
@@ -246,8 +238,6 @@ void Error_Handler(void);
 #define LCD_R4_GPIO_Port GPIOJ
 #define FMC_D5_Pin GPIO_PIN_8
 #define FMC_D5_GPIO_Port GPIOE
-#define QSPI_D0_Pin GPIO_PIN_11
-#define QSPI_D0_GPIO_Port GPIOD
 #define FMC_BA1_Pin GPIO_PIN_5
 #define FMC_BA1_GPIO_Port GPIOG
 #define FMC_BA0_Pin GPIO_PIN_4
@@ -266,8 +256,6 @@ void Error_Handler(void);
 #define FMC_D8_GPIO_Port GPIOE
 #define FMC_D11_Pin GPIO_PIN_14
 #define FMC_D11_GPIO_Port GPIOE
-#define AR_D6_Pin GPIO_PIN_6
-#define AR_D6_GPIO_Port GPIOH
 #define LCD_SDA_Pin GPIO_PIN_8
 #define LCD_SDA_GPIO_Port GPIOH
 #define LCD_R1_Pin GPIO_PIN_0
@@ -286,7 +274,37 @@ void Error_Handler(void);
 #define FMC_D10_GPIO_Port GPIOE
 
 /* USER CODE BEGIN Private defines */
-#define LCD_FRAME_BUFFER			SDRAM_DEVICE_ADDR
+
+#define RGB565_BYTE_PER_PIXEL     		2
+#define ARBG8888_BYTE_PER_PIXEL   		4
+
+/* Camera have a max resolution of VGA : 640x480 */
+#define CAMERA_RES_MAX_X          		640
+#define CAMERA_RES_MAX_Y          		480
+
+/**
+  * @brief  LCD FB_StartAddress
+  * LCD Frame buffer start address : starts at beginning of SDRAM
+  */
+#define LCD_FRAME_BUFFER          		SDRAM_DEVICE_ADDR
+
+/**
+  * @brief  Camera frame buffer start address
+  * Assuming LCD frame buffer is of size 480x800 and format ARGB8888 (32 bits per pixel).
+  */
+#define CAMERA_FRAME_BUFFER       		((uint32_t)(LCD_FRAME_BUFFER + (RK043FN48H_WIDTH * RK043FN48H_HEIGHT * ARBG8888_BYTE_PER_PIXEL)))
+
+/**
+  * @brief  SDRAM Write read buffer start address after CAM Frame buffer
+  * Assuming Camera frame buffer is of size 640x480 and format RGB565 (16 bits per pixel).
+  */
+#define SDRAM_WRITE_READ_ADDR        	((uint32_t)(CAMERA_FRAME_BUFFER + (CAMERA_RES_MAX_X * CAMERA_RES_MAX_Y * RGB565_BYTE_PER_PIXEL)))
+
+#define SDRAM_WRITE_READ_ADDR_OFFSET 	((uint32_t)0x0800)
+#define SRAM_WRITE_READ_ADDR_OFFSET  	SDRAM_WRITE_READ_ADDR_OFFSET
+
+#define AUDIO_REC_START_ADDR         	SDRAM_WRITE_READ_ADDR
+
 /* USER CODE END Private defines */
 
 #ifdef __cplusplus

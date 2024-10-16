@@ -10,7 +10,7 @@ typedef enum {
 } BUFFER_StateTypeDef;
 
 #define AUDIO_BLOCK_SIZE	((uint32_t) 0x3E80)		// 16,000 element
-#define AUDIO_NB_BLOCKS		((uint32_t) 10)			// n block
+#define AUDIO_NB_BLOCKS		((uint32_t) 60)			// n block
 #define OUTPUT_ADDR			(AUDIO_REC_START_ADDR + (AUDIO_NB_BLOCKS * AUDIO_BLOCK_SIZE * 2))
 
 extern AUDIO_ErrorTypeDef AUDIO_Start(uint32_t audio_start_address, uint32_t audio_file_size);

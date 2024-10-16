@@ -1,7 +1,12 @@
 Debug/
 Release/
+
 *.o
+
 *.html
+
 *.css
-*.txt
-*_htmresc/
+
+**/*.txt
+
+Drivers/*/*/_htmresc/

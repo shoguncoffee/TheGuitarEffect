@@ -1,20 +1,4 @@
 /* USER CODE BEGIN Header */
-/**
-  ******************************************************************************
-  * @file    stm32f7xx_it.c
-  * @brief   Interrupt Service Routines.
-  ******************************************************************************
-  * @attention
-  *
-  * Copyright (c) 2024 STMicroelectronics.
-  * All rights reserved.
-  *
-  * This software is licensed under terms that can be found in the LICENSE file
-  * in the root directory of this software component.
-  * If no LICENSE file comes with this software, it is provided AS-IS.
-  *
-  ******************************************************************************
-  */
 /* USER CODE END Header */
 
 /* Includes ------------------------------------------------------------------*/
@@ -42,6 +26,20 @@
 /* Private variables ---------------------------------------------------------*/
 /* USER CODE BEGIN PV */
 
+extern DMA_HandleTypeDef   hdma;
+
+/*DMA status declared in "sdram_dma.c" file */
+extern uint32_t uwDMA_Transfer_Complete;
+
+/* SAI handler declared in "stm32746g_discovery_audio.c" file */
+extern SAI_HandleTypeDef haudio_out_sai;
+
+/* SAI handler declared in "stm32746g_discovery_audio.c" file */
+extern SAI_HandleTypeDef haudio_in_sai;
+
+/* SDRAM handler declared in "stm32746g_discovery_sdram.c" file */
+extern SDRAM_HandleTypeDef sdramHandle;
+
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -58,6 +56,7 @@
 extern DMA_HandleTypeDef hdma_adc3;
 extern ADC_HandleTypeDef hadc3;
 extern DMA2D_HandleTypeDef hdma2d;
+extern SDRAM_HandleTypeDef hsdram1;
 extern LTDC_HandleTypeDef hltdc;
 extern TIM_HandleTypeDef htim6;
 
@@ -218,6 +217,20 @@ void ADC_IRQHandler(void)
 }
 
 /**
+  * @brief This function handles FMC global interrupt.
+  */
+void FMC_IRQHandler(void)
+{
+  /* USER CODE BEGIN FMC_IRQn 0 */
+
+  /* USER CODE END FMC_IRQn 0 */
+  HAL_SDRAM_IRQHandler(&hsdram1);
+  /* USER CODE BEGIN FMC_IRQn 1 */
+
+  /* USER CODE END FMC_IRQn 1 */
+}
+
+/**
   * @brief This function handles TIM6 global interrupt, DAC1 and DAC2 underrun error interrupts.
   */
 void TIM6_DAC_IRQHandler(void)
@@ -232,17 +245,17 @@ void TIM6_DAC_IRQHandler(void)
 }
 
 /**
-  * @brief This function handles DMA2 stream0 global interrupt.
+  * @brief This function handles DMA2 stream1 global interrupt.
   */
-void DMA2_Stream0_IRQHandler(void)
+void DMA2_Stream1_IRQHandler(void)
 {
-  /* USER CODE BEGIN DMA2_Stream0_IRQn 0 */
+  /* USER CODE BEGIN DMA2_Stream1_IRQn 0 */
 
-  /* USER CODE END DMA2_Stream0_IRQn 0 */
+  /* USER CODE END DMA2_Stream1_IRQn 0 */
   HAL_DMA_IRQHandler(&hdma_adc3);
-  /* USER CODE BEGIN DMA2_Stream0_IRQn 1 */
+  /* USER CODE BEGIN DMA2_Stream1_IRQn 1 */
 
-  /* USER CODE END DMA2_Stream0_IRQn 1 */
+  /* USER CODE END DMA2_Stream1_IRQn 1 */
 }
 
 /**
@@ -274,5 +287,20 @@ void DMA2D_IRQHandler(void)
 }
 
 /* USER CODE BEGIN 1 */
+
+void AUDIO_IN_SAIx_DMAx_IRQHandler(void)
+{
+  HAL_DMA_IRQHandler(haudio_in_sai.hdmarx);
+}
+
+void BSP_SDRAM_DMA_IRQHandler(void)
+{
+  HAL_DMA_IRQHandler(sdramHandle.hdma);
+}
+
+void AUDIO_OUT_SAIx_DMAx_IRQHandler(void)
+{
+  HAL_DMA_IRQHandler(haudio_out_sai.hdmatx);
+}
 
 /* USER CODE END 1 */
